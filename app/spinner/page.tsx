@@ -3,8 +3,15 @@ import { useEffect, useRef, useState } from "react";
 
 export default function Spinner() {
   const canvasRef = useRef(null);
+  const windowSize = useWindowSize();
   const [currentValue, setCurrentValue] = useState<string>("");
-  const [values, setValues] = useState<Array<string>>([]);
+  const [values, setValues] = useState<Array<string>>([
+    "Option 1",
+    "Option 2",
+    "Option 3",
+    "Option 4",
+    "Option 5",
+  ]);
   const [emptyInputError, setEmptyInputError] = useState<boolean>(false);
 
   useEffect(() => {
@@ -47,13 +54,24 @@ export default function Spinner() {
       ctx.closePath();
     }
 
-    drawSlices(canvas.width / 2, canvas.height / 2, 50, values.length);
-  }, [values]);
+    drawSlices(
+      canvas.width / 2,
+      canvas.height / 2,
+      canvas.height / 2,
+      values.length
+    );
+  }, [values, windowSize]);
 
   return (
-    <div className="flex items-start">
-      <canvas ref={canvasRef}></canvas>
-      <div className="pt-4">
+    <div className="flex items-start justify-center">
+      <canvas
+        ref={canvasRef}
+        width={windowSize.width < 400 ? windowSize.width - 20 : 400}
+        height={windowSize.width < 400 ? windowSize.width - 20 : 400}
+        className="pt-8 mr-12"
+      ></canvas>
+      <div className="pt-14">
+        <h3 className="font-bold text-xl mb-6">Entries:</h3>
         <label className="relative flex items-center w-60">
           <span className="sr-only">Search</span>
           <span
@@ -83,7 +101,7 @@ export default function Spinner() {
             </svg>
           </span>
           <span
-            className={`absolute left-3 bottom-10 text-xs text-red-600 transition-transform ${
+            className={`absolute bottom-10 text-xs text-red-600 transition-transform ${
               emptyInputError ? "scale-100" : "scale-0"
             }`}
           >
@@ -149,4 +167,31 @@ export default function Spinner() {
       </div>
     </div>
   );
+}
+
+function useWindowSize() {
+  const [windowSize, setWindowSize] = useState<{
+    width: number;
+    height: number;
+  }>({
+    width: window.innerWidth,
+    height: window.innerHeight,
+  });
+
+  function handleResize() {
+    setWindowSize({
+      ...windowSize,
+      width: window.innerWidth,
+      height: window.innerHeight,
+    });
+  }
+
+  useEffect(() => {
+    window.addEventListener("resize", handleResize);
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
+
+  return windowSize;
 }
