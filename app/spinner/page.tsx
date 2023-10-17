@@ -119,7 +119,15 @@ export default function Spinner() {
               className="text-base w-60 flex items-center relative py-3 px-3 border-b-2"
             >
               <span>{el}</span>
-              <span className="absolute right-2 p-1 hover:bg-slate-200 hover:cursor-pointer transition-colors">
+              <span
+                onClick={() => {
+                  const tempArray = [...values];
+                  tempArray.splice(index, 1);
+                  console.log(tempArray);
+                  setValues([...tempArray]);
+                }}
+                className="absolute right-2 p-1 hover:bg-slate-200 hover:cursor-pointer transition-colors"
+              >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
