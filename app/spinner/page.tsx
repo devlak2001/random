@@ -35,6 +35,7 @@ export default function Spinner() {
     ) {
       const colors = colorsArray.slice(0, numOfSlices);
       const sliceRadius = (Math.PI * 2) / numOfSlices;
+
       console.log(colors);
       if (numOfSlices) {
         for (let i = 0; i < numOfSlices; i++) {
@@ -48,7 +49,7 @@ export default function Spinner() {
         ctx.beginPath();
         ctx.arc(x, y, radius, 0, Math.PI * 2);
         ctx.lineTo(x, y);
-        ctx.fillStyle = "red";
+        ctx.fillStyle = "grey";
         ctx.fill();
       }
       ctx.closePath();
@@ -89,13 +90,13 @@ export default function Spinner() {
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
               viewBox="0 0 24 24"
-              stroke-width="1.5"
+              strokeWidth="1.5"
               stroke="currentColor"
               className="w-6 h-6"
             >
               <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
+                strokeLinecap="round"
+                strokeLinejoin="round"
                 d="M12 4.5v15m7.5-7.5h-15"
               />
             </svg>
@@ -174,19 +175,19 @@ function useWindowSize() {
     width: number;
     height: number;
   }>({
-    width: window.innerWidth,
-    height: window.innerHeight,
+    width: 0,
+    height: 0,
   });
 
   function handleResize() {
     setWindowSize({
-      ...windowSize,
       width: window.innerWidth,
       height: window.innerHeight,
     });
   }
 
   useEffect(() => {
+    handleResize();
     window.addEventListener("resize", handleResize);
     return () => {
       window.removeEventListener("resize", handleResize);
