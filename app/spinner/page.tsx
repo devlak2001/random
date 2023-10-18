@@ -102,12 +102,12 @@ export default function Spinner() {
         height={windowSize.width < 400 ? windowSize.width - 20 : 400}
         className="pt-8 mr-12"
       ></canvas>
-      <div className="pt-14">
-        <h3 className="font-bold text-xl mb-6">Entries:</h3>
-        <label className="relative flex items-center w-60">
+      <div className="pt-10 mr-4">
+        <h3 className="font-bold text-xl mb-6 ml-4">Entries:</h3>
+        <label className="relative flex items-center w-60 ml-4">
           <span className="sr-only">Search</span>
           <span
-            className="absolute right-2 hover:bg-slate-200 hover:cursor-pointer transition-colors p-1"
+            className="absolute right-2 hover:bg-slate-200 hover:cursor-pointer transition-colors p-1 rounded-md"
             onClick={(e) => {
               if (currentValue !== "") {
                 setEntries([currentValue, ...entries]);
@@ -165,44 +165,47 @@ export default function Spinner() {
             value={currentValue}
           />
         </label>
-        <ul>
-          {entries.map((el, index) => (
-            <li
-              key={index}
-              className="text-base w-60 flex items-center relative py-3 px-3 border-b-2"
-            >
-              <span
-                className="h-5 w-5 mr-2"
-                style={{ backgroundColor: entryColors[index] }}
-              ></span>
-              <span>{el}</span>
-              <span
-                onClick={() => {
-                  const tempArray = [...entries];
-                  tempArray.splice(index, 1);
-                  setEntries([...tempArray]);
-                  setEntryColors([...generateColorsArray(tempArray.length)]);
-                }}
-                className="absolute right-2 p-1 hover:bg-slate-200 hover:cursor-pointer transition-colors"
+        <div className="relative h-72 mt-3">
+          <ul className="pb-4 h-full overflow-y-scroll overflow-x-visible px-4">
+            {entries.map((el, index) => (
+              <li
+                key={index}
+                className="text-base w-60 flex items-center relative py-3 px-3 border-b-2"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={1.5}
-                  stroke="currentColor"
-                  className="w-6 h-6"
+                <span
+                  className="h-5 w-5 mr-2"
+                  style={{ backgroundColor: entryColors[index] }}
+                ></span>
+                <span>{el}</span>
+                <span
+                  onClick={() => {
+                    const tempArray = [...entries];
+                    tempArray.splice(index, 1);
+                    setEntries([...tempArray]);
+                    setEntryColors([...generateColorsArray(tempArray.length)]);
+                  }}
+                  className="absolute right-2 p-1 rounded-md hover:bg-slate-200 hover:cursor-pointer transition-colors"
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"
-                  />
-                </svg>
-              </span>
-            </li>
-          ))}
-        </ul>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth={1.5}
+                    stroke="currentColor"
+                    className="w-6 h-6"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"
+                    />
+                  </svg>
+                </span>
+              </li>
+            ))}
+          </ul>
+          <div className="absolute pointer-events-none bg-gradient-to-b from-transparent to-white h-10 bottom-0 left-0 w-full"></div>
+        </div>
       </div>
     </div>
   );

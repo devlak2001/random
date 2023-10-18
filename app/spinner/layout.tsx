@@ -1,6 +1,6 @@
 import React from "react";
 
-export default function AdminLayout({
+export default function SpinnerLayout({
   children,
 }: {
   children: React.ReactNode;
