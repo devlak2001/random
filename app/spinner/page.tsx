@@ -1,11 +1,39 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 
+const colors: Array<string> = [
+  "red",
+  "blue",
+  "yellow",
+  "orange",
+  "purple",
+  "green",
+];
+
+function generateColorsArray(lenght: number = 5) {
+  const shuffledArray: Array<string> = [];
+
+  while (shuffledArray.length < lenght) {
+    const color = colors[Math.floor(Math.random() * colors.length)];
+    if (
+      shuffledArray.length === 0 ||
+      (shuffledArray[shuffledArray.length - 1] !== color &&
+        shuffledArray[0] !== color)
+    ) {
+      shuffledArray.push(color);
+    }
+  }
+
+  return shuffledArray;
+}
+
 export default function Spinner() {
   const canvasRef = useRef(null);
   const windowSize = useWindowSize();
   const [currentValue, setCurrentValue] = useState<string>("");
-  const [values, setValues] = useState<Array<string>>([
+  const [entryColors, setEntryColors] =
+    useState<Array<string>>(generateColorsArray);
+  const [entries, setEntries] = useState<Array<string>>([
     "Option 1",
     "Option 2",
     "Option 3",
@@ -15,15 +43,6 @@ export default function Spinner() {
   const [emptyInputError, setEmptyInputError] = useState<boolean>(false);
 
   useEffect(() => {
-    const colorsArray: Array<string> = [
-      "red",
-      "blue",
-      "yellow",
-      "orange",
-      "purple",
-      "green",
-    ];
-
     const canvas: HTMLCanvasElement = canvasRef.current!;
     const ctx = canvas.getContext("2d")!;
 
@@ -33,16 +52,14 @@ export default function Spinner() {
       radius: number,
       numOfSlices: number
     ) {
-      const colors = colorsArray.slice(0, numOfSlices);
       const sliceRadius = (Math.PI * 2) / numOfSlices;
 
-      console.log(colors);
-      if (numOfSlices) {
+      if (entries.length) {
         for (let i = 0; i < numOfSlices; i++) {
           ctx.beginPath();
           ctx.arc(x, y, radius, sliceRadius * i, sliceRadius * (i + 1));
           ctx.lineTo(x, y);
-          ctx.fillStyle = colors[i];
+          ctx.fillStyle = entryColors[i];
           ctx.fill();
         }
       } else {
@@ -59,9 +76,9 @@ export default function Spinner() {
       canvas.width / 2,
       canvas.height / 2,
       canvas.height / 2,
-      values.length
+      entries.length
     );
-  }, [values, windowSize]);
+  }, [entries, windowSize]);
 
   return (
     <div className="flex items-start justify-center">
@@ -79,7 +96,8 @@ export default function Spinner() {
             className="absolute right-2 hover:bg-slate-200 hover:cursor-pointer transition-colors p-1"
             onClick={(e) => {
               if (currentValue !== "") {
-                setValues([...values, currentValue]);
+                setEntries([currentValue, ...entries]);
+                setEntryColors([...generateColorsArray(entries.length + 1)]);
                 setCurrentValue("");
               } else {
                 setEmptyInputError(true);
@@ -117,7 +135,9 @@ export default function Spinner() {
             onKeyDown={(e) => {
               if (e.key === "Enter") {
                 if (currentValue !== "") {
-                  setValues([...values, currentValue]);
+                  setEntries([currentValue, ...entries]);
+                  setEntryColors([...generateColorsArray(entries.length + 1)]);
+                  console.log(entries);
                   setCurrentValue("");
                 } else {
                   setEmptyInputError(true);
@@ -132,18 +152,22 @@ export default function Spinner() {
           />
         </label>
         <ul>
-          {values.map((el, index) => (
+          {entries.map((el, index) => (
             <li
               key={index}
               className="text-base w-60 flex items-center relative py-3 px-3 border-b-2"
             >
+              <span
+                className="h-5 w-5 mr-2"
+                style={{ backgroundColor: entryColors[index] }}
+              ></span>
               <span>{el}</span>
               <span
                 onClick={() => {
-                  const tempArray = [...values];
+                  const tempArray = [...entries];
                   tempArray.splice(index, 1);
-                  console.log(tempArray);
-                  setValues([...tempArray]);
+                  setEntries([...tempArray]);
+                  setEntryColors([...generateColorsArray(tempArray.length)]);
                 }}
                 className="absolute right-2 p-1 hover:bg-slate-200 hover:cursor-pointer transition-colors"
               >
