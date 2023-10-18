@@ -1,30 +1,36 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 
-const colors: Array<string> = [
-  "red",
-  "blue",
-  "yellow",
-  "orange",
-  "purple",
-  "green",
-];
-
-function generateColorsArray(lenght: number = 5) {
-  const shuffledArray: Array<string> = [];
-
-  while (shuffledArray.length < lenght) {
-    const color = colors[Math.floor(Math.random() * colors.length)];
+function generateColorsArray(length: number = 5) {
+  const originalColors = [
+    "#fff44d",
+    "#dde45a",
+    "#63b7e6",
+    "#5588c7",
+    "#9474b5",
+    "#ed1b24",
+    "#f1592a",
+    "#3ab54a",
+    "#283890",
+  ];
+  const newColors: Array<string> = [];
+  let i = 0;
+  do {
     if (
-      shuffledArray.length === 0 ||
-      (shuffledArray[shuffledArray.length - 1] !== color &&
-        shuffledArray[0] !== color)
+      newColors[newColors.length - 1] !==
+        originalColors[i % originalColors.length] &&
+      newColors[0] !== originalColors[i % originalColors.length]
     ) {
-      shuffledArray.push(color);
+      if (newColors.length % 2) {
+        newColors.push(originalColors[i % originalColors.length]);
+        i++;
+      } else {
+        newColors.unshift(originalColors[i % originalColors.length]);
+        i++;
+      }
     }
-  }
-
-  return shuffledArray;
+  } while (newColors.length < length);
+  return newColors;
 }
 
 export default function Spinner() {
@@ -61,6 +67,14 @@ export default function Spinner() {
           ctx.lineTo(x, y);
           ctx.fillStyle = entryColors[i];
           ctx.fill();
+        }
+        for (let i = 0; i < numOfSlices; i++) {
+          ctx.beginPath();
+          ctx.arc(x, y, radius, sliceRadius * i, sliceRadius * (i + 1));
+          ctx.lineTo(x, y);
+          ctx.lineWidth = radius / 25;
+          ctx.strokeStyle = "white";
+          ctx.stroke();
         }
       } else {
         ctx.beginPath();
