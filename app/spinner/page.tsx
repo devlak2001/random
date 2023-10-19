@@ -1,5 +1,6 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { memo, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
 function generateColorsArray(length: number = 5) {
   const originalColors = [
@@ -100,11 +101,11 @@ export default function Spinner() {
         ref={canvasRef}
         width={windowSize.width < 400 ? windowSize.width - 20 : 400}
         height={windowSize.width < 400 ? windowSize.width - 20 : 400}
-        className="pt-8 mr-12"
+        className="pt-14 mr-12"
       ></canvas>
-      <div className="pt-10 mr-4">
-        <h3 className="font-bold text-xl mb-6 ml-4">Entries:</h3>
-        <label className="relative flex items-center w-60 ml-4">
+      <div className="pt-10 mr-4 flex flex-col items-center">
+        <h3 className="font-bold text-xl mb-6 ml-4 self-start">Entries:</h3>
+        <label className="relative flex items-center w-11/12">
           <span className="sr-only">Search</span>
           <span
             className="absolute right-2 hover:bg-slate-200 hover:cursor-pointer transition-colors p-1 rounded-md"
@@ -134,7 +135,7 @@ export default function Spinner() {
             </svg>
           </span>
           <span
-            className={`absolute bottom-10 text-xs text-red-600 transition-transform ${
+            className={`absolute bottom-12 text-xs text-red-600 transition-transform ${
               emptyInputError ? "scale-100" : "scale-0"
             }`}
           >
@@ -158,56 +159,89 @@ export default function Spinner() {
                 }
               }
             }}
-            className="placeholder:italic placeholder:text-slate-400 block bg-white w-full border border-slate-300 rounded-md py-2 pl-3 pr-3 shadow-sm focus:outline-none focus:border-sky-500 focus:ring-sky-500 focus:ring-1 sm:text-sm"
+            className="placeholder:italic h-11 placeholder:text-slate-400 block bg-white w-full border border-slate-300 rounded-md py-2 pl-3 pr-3 shadow-sm focus:outline-none focus:border-sky-500 focus:ring-sky-500 focus:ring-1 sm:text-sm"
             placeholder="Add value to spinner"
             type="text"
             name="search"
             value={currentValue}
           />
         </label>
-        <div className="relative h-72 mt-3">
-          <ul className="pb-4 h-full overflow-y-scroll overflow-x-visible px-4">
+        <div className="relative max-h-72 flex flex-col mt-3">
+          <ul className="pb-4 h-full w-64 overflow-y-scroll overflow-x-visible px-4">
             {entries.map((el, index) => (
-              <li
-                key={index}
-                className="text-base w-60 flex items-center relative py-3 px-3 border-b-2"
-              >
-                <span
-                  className="h-5 w-5 mr-2"
-                  style={{ backgroundColor: entryColors[index] }}
-                ></span>
-                <span>{el}</span>
-                <span
-                  onClick={() => {
-                    const tempArray = [...entries];
-                    tempArray.splice(index, 1);
-                    setEntries([...tempArray]);
-                    setEntryColors([...generateColorsArray(tempArray.length)]);
-                  }}
-                  className="absolute right-2 p-1 rounded-md hover:bg-slate-200 hover:cursor-pointer transition-colors"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth={1.5}
-                    stroke="currentColor"
-                    className="w-6 h-6"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"
-                    />
-                  </svg>
-                </span>
-              </li>
+              <Entry
+                value={el}
+                entries={entries}
+                setEntries={setEntries}
+                entryColors={entryColors}
+                setEntryColors={setEntryColors}
+                index={index}
+              />
             ))}
           </ul>
           <div className="absolute pointer-events-none bg-gradient-to-b from-transparent to-white h-10 bottom-0 left-0 w-full"></div>
         </div>
+        <ClearAllEntriesButton entries={entries} setEntries={setEntries} />
       </div>
     </div>
+  );
+}
+
+const Entry = memo(function Entry({
+  value,
+  entries,
+  setEntries,
+  entryColors,
+  setEntryColors,
+  index,
+}: any) {
+  return (
+    <li className="text-base w-full flex items-center relative py-3 px-3 border-b-2">
+      <span
+        className="h-5 w-5 mr-2"
+        style={{ backgroundColor: entryColors[index] }}
+      ></span>
+      <span>{value}</span>
+      <span
+        onClick={() => {
+          const tempArray = [...entries];
+          tempArray.splice(index, 1);
+          setEntries([...tempArray]);
+          setEntryColors([...generateColorsArray(tempArray.length)]);
+        }}
+        className="absolute right-2 p-1 rounded-md hover:bg-slate-200 hover:cursor-pointer transition-colors"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          strokeWidth={1.5}
+          stroke="currentColor"
+          className="w-6 h-6"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"
+          />
+        </svg>
+      </span>
+    </li>
+  );
+});
+
+function ClearAllEntriesButton({ entries, setEntries }: any) {
+  return (
+    <button
+      onClick={() => {
+        setEntries([]);
+      }}
+      className={`w-full rounded-md font-bold transition-transform h-11 w-11/12 bg-red-600 text-white flex items-center justify-center ${
+        entries.length ? "scale-100" : "scale-0"
+      }`}
+    >
+      <span>Clear all entries</span>
+    </button>
   );
 }
 
