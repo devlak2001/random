@@ -1,7 +1,11 @@
 "use client";
 import { memo, useEffect, useRef, useState } from "react";
 
-function generateColorsArray(length: number = 6) {
+function getRandomArbitrary(min: number, max: number): number {
+  return Math.random() * (max - min) + min;
+}
+
+function generateColorsArray(length: number = 6): Array<string> {
   const originalColors = [
     "#fff44d",
     "#dde45a",
@@ -36,6 +40,7 @@ function generateColorsArray(length: number = 6) {
 export default function Spinner() {
   const canvasRef = useRef(null);
   const windowSize = useWindowSize();
+  const [wheelRotationAngle, setWheelRotationAngle] = useState<number>(0);
   const [spinning, setSpinning] = useState<boolean>(false);
   const [currentValue, setCurrentValue] = useState<string>("");
   const [entryColors, setEntryColors] =
@@ -74,7 +79,7 @@ export default function Spinner() {
           ctx.beginPath();
           ctx.arc(x, y, radius, sliceRadius * i, sliceRadius * (i + 1));
           ctx.lineTo(x, y);
-          ctx.lineWidth = radius / 25;
+          ctx.lineWidth = radius / 50;
           ctx.strokeStyle = "white";
           ctx.stroke();
         }
@@ -103,9 +108,19 @@ export default function Spinner() {
           ref={canvasRef}
           width={windowSize.width < 400 ? windowSize.width - 20 : 400}
           height={windowSize.width < 400 ? windowSize.width - 20 : 400}
-          className="pt-14"
+          className={`mt-14 pointer-events-none ${
+            spinning ? "transition-transform" : "transition-none"
+          }`}
+          style={{
+            transitionDuration: "2s",
+            transform: `rotate(${wheelRotationAngle}deg)`,
+          }}
         ></canvas>
-        <SpinButton spinning={spinning} setSpinning={setSpinning} />
+        <SpinButton
+          spinning={spinning}
+          setSpinning={setSpinning}
+          setWheelRotationAngle={setWheelRotationAngle}
+        />
       </div>
 
       <div className="pt-10 mr-4 flex flex-col items-center">
@@ -255,7 +270,7 @@ function ClearAllEntriesButton({ entries, setEntries, disabled }: any) {
       onClick={() => {
         setEntries([]);
       }}
-      className={`rounded-md font-bold ${
+      className={`rounded-md shadow-lg transition hover:scale-95 hover:shadow-none font-bold ${
         disabled ? "cursor-not-allowed" : "cursor-pointer"
       } transition-transform h-11 w-11/12 bg-red-600 text-white flex items-center justify-center ${
         entries.length ? "scale-100" : "scale-0"
@@ -266,19 +281,23 @@ function ClearAllEntriesButton({ entries, setEntries, disabled }: any) {
   );
 }
 
-function SpinButton({ spinning, setSpinning }: any) {
+function SpinButton({ spinning, setSpinning, setWheelRotationAngle }: any) {
   return (
     <button
       disabled={spinning}
       onClick={() => {
         setSpinning(true);
+        setWheelRotationAngle(
+          (state: number) => state + getRandomArbitrary(720, 1080)
+        );
         console.log("something");
         setTimeout(() => {
           console.log("something");
           setSpinning(false);
+          setWheelRotationAngle((state: number) => state % 360);
         }, 2000);
       }}
-      className={`rounded-md mt-6 ${
+      className={`rounded-md shadow-lg transition hover:scale-95 hover:shadow-none mt-6 ${
         spinning ? "cursor-not-allowed" : "cursor-pointer"
       } font-bold transition-transform h-14 text-2xl w-60 bg-green-500 text-white flex items-center justify-center`}
     >
