@@ -1,8 +1,7 @@
 "use client";
 import { memo, useEffect, useRef, useState } from "react";
-import { createPortal } from "react-dom";
 
-function generateColorsArray(length: number = 5) {
+function generateColorsArray(length: number = 6) {
   const originalColors = [
     "#fff44d",
     "#dde45a",
@@ -37,6 +36,7 @@ function generateColorsArray(length: number = 5) {
 export default function Spinner() {
   const canvasRef = useRef(null);
   const windowSize = useWindowSize();
+  const [spinning, setSpinning] = useState<boolean>(false);
   const [currentValue, setCurrentValue] = useState<string>("");
   const [entryColors, setEntryColors] =
     useState<Array<string>>(generateColorsArray);
@@ -46,6 +46,7 @@ export default function Spinner() {
     "Option 3",
     "Option 4",
     "Option 5",
+    "Option 6",
   ]);
   const [emptyInputError, setEmptyInputError] = useState<boolean>(false);
 
@@ -97,18 +98,25 @@ export default function Spinner() {
 
   return (
     <div className="flex items-start justify-center">
-      <canvas
-        ref={canvasRef}
-        width={windowSize.width < 400 ? windowSize.width - 20 : 400}
-        height={windowSize.width < 400 ? windowSize.width - 20 : 400}
-        className="pt-14 mr-12"
-      ></canvas>
+      <div className="flex flex-col items-center mr-12">
+        <canvas
+          ref={canvasRef}
+          width={windowSize.width < 400 ? windowSize.width - 20 : 400}
+          height={windowSize.width < 400 ? windowSize.width - 20 : 400}
+          className="pt-14"
+        ></canvas>
+        <SpinButton spinning={spinning} setSpinning={setSpinning} />
+      </div>
+
       <div className="pt-10 mr-4 flex flex-col items-center">
         <h3 className="font-bold text-xl mb-6 ml-4 self-start">Entries:</h3>
         <label className="relative flex items-center w-11/12">
           <span className="sr-only">Search</span>
-          <span
-            className="absolute right-2 hover:bg-slate-200 hover:cursor-pointer transition-colors p-1 rounded-md"
+          <button
+            disabled={spinning}
+            className={`absolute right-2 hover:bg-slate-200 ${
+              spinning ? "cursor-not-allowed" : "cursor-pointer"
+            } transition-colors p-1 rounded-md`}
             onClick={(e) => {
               if (currentValue !== "") {
                 setEntries([currentValue, ...entries]);
@@ -133,7 +141,7 @@ export default function Spinner() {
                 d="M12 4.5v15m7.5-7.5h-15"
               />
             </svg>
-          </span>
+          </button>
           <span
             className={`absolute bottom-12 text-xs text-red-600 transition-transform ${
               emptyInputError ? "scale-100" : "scale-0"
@@ -143,6 +151,7 @@ export default function Spinner() {
           </span>
 
           <input
+            disabled={spinning}
             onChange={(e) => {
               setCurrentValue(e.target.value);
               setEmptyInputError(false);
@@ -170,6 +179,7 @@ export default function Spinner() {
           <ul className="pb-4 h-full w-64 overflow-y-scroll overflow-x-visible px-4">
             {entries.map((el, index) => (
               <Entry
+                spinning={spinning}
                 value={el}
                 entries={entries}
                 setEntries={setEntries}
@@ -181,13 +191,18 @@ export default function Spinner() {
           </ul>
           <div className="absolute pointer-events-none bg-gradient-to-b from-transparent to-white h-10 bottom-0 left-0 w-full"></div>
         </div>
-        <ClearAllEntriesButton entries={entries} setEntries={setEntries} />
+        <ClearAllEntriesButton
+          disabled={spinning}
+          entries={entries}
+          setEntries={setEntries}
+        />
       </div>
     </div>
   );
 }
 
 const Entry = memo(function Entry({
+  spinning,
   value,
   entries,
   setEntries,
@@ -202,14 +217,17 @@ const Entry = memo(function Entry({
         style={{ backgroundColor: entryColors[index] }}
       ></span>
       <span>{value}</span>
-      <span
+      <button
+        disabled={spinning}
         onClick={() => {
           const tempArray = [...entries];
           tempArray.splice(index, 1);
           setEntries([...tempArray]);
           setEntryColors([...generateColorsArray(tempArray.length)]);
         }}
-        className="absolute right-2 p-1 rounded-md hover:bg-slate-200 hover:cursor-pointer transition-colors"
+        className={`absolute ${
+          spinning ? "cursor-not-allowed" : "cursor-pointer"
+        } right-2 p-1 rounded-md hover:bg-slate-200 transition-colors`}
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -225,22 +243,46 @@ const Entry = memo(function Entry({
             d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"
           />
         </svg>
-      </span>
+      </button>
     </li>
   );
 });
 
-function ClearAllEntriesButton({ entries, setEntries }: any) {
+function ClearAllEntriesButton({ entries, setEntries, disabled }: any) {
   return (
     <button
+      disabled={disabled}
       onClick={() => {
         setEntries([]);
       }}
-      className={`w-full rounded-md font-bold transition-transform h-11 w-11/12 bg-red-600 text-white flex items-center justify-center ${
+      className={`rounded-md font-bold ${
+        disabled ? "cursor-not-allowed" : "cursor-pointer"
+      } transition-transform h-11 w-11/12 bg-red-600 text-white flex items-center justify-center ${
         entries.length ? "scale-100" : "scale-0"
       }`}
     >
       <span>Clear all entries</span>
+    </button>
+  );
+}
+
+function SpinButton({ spinning, setSpinning }: any) {
+  return (
+    <button
+      disabled={spinning}
+      onClick={() => {
+        setSpinning(true);
+        console.log("something");
+        setTimeout(() => {
+          console.log("something");
+          setSpinning(false);
+        }, 2000);
+      }}
+      className={`rounded-md mt-6 ${
+        spinning ? "cursor-not-allowed" : "cursor-pointer"
+      } font-bold transition-transform h-14 text-2xl w-60 bg-green-500 text-white flex items-center justify-center`}
+    >
+      <span>SPIN</span>
     </button>
   );
 }
