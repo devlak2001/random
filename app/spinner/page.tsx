@@ -1,12 +1,13 @@
 "use client";
 import { memo, useEffect, useRef, useState } from "react";
+import { useDeviceScreen } from "@/app/_hooks/hooks";
 
 function getRandomArbitrary(min: number, max: number): number {
   return Math.random() * (max - min) + min;
 }
 
 function generateColorsArray(length: number = 6): Array<string> {
-  const originalColors = [
+  const colors = [
     "#fff44d",
     "#dde45a",
     "#63b7e6",
@@ -18,28 +19,20 @@ function generateColorsArray(length: number = 6): Array<string> {
     "#283890",
   ];
   const newColors: Array<string> = [];
-  let i = 0;
-  do {
-    if (
-      newColors[newColors.length - 1] !==
-        originalColors[i % originalColors.length] &&
-      newColors[0] !== originalColors[i % originalColors.length]
-    ) {
-      if (newColors.length % 2) {
-        newColors.push(originalColors[i % originalColors.length]);
-        i++;
-      } else {
-        newColors.unshift(originalColors[i % originalColors.length]);
-        i++;
-      }
-    }
-  } while (newColors.length < length);
+
+  for (let i = 0; i < length; i++) {
+    const colorIndex = i % colors.length;
+    i % 2
+      ? newColors.push(colors[colorIndex])
+      : newColors.unshift(colors[colorIndex]);
+  }
+
   return newColors;
 }
 
 export default function Spinner() {
   const canvasRef = useRef(null);
-  const windowSize = useWindowSize();
+  const windowSize = useDeviceScreen();
   const [wheelRotationAngle, setWheelRotationAngle] = useState<number>(0);
   const [spinHistory, setSpinHistory] = useState<
     Array<{
@@ -62,6 +55,35 @@ export default function Spinner() {
     { value: "Option 6", startingAngle: 300 },
   ]);
   const [emptyInputError, setEmptyInputError] = useState<boolean>(false);
+
+  function handleEntryDeleteButton(index: number) {
+    const tempArray = [...entries];
+    tempArray.splice(index, 1);
+    setEntries([...tempArray]);
+    setEntryColors([...generateColorsArray(tempArray.length)]);
+  }
+
+  function addEntry() {
+    if (currentValue !== "") {
+      const tempEntries = entries.map((el, index) => {
+        return {
+          value: el.value,
+          startingAngle: (360 / (entries.length + 1)) * (index + 1),
+        };
+      });
+      setEntries([
+        {
+          value: currentValue,
+          startingAngle: 0,
+        },
+        ...tempEntries,
+      ]);
+      setEntryColors([...generateColorsArray(entries.length + 1)]);
+      setCurrentValue("");
+    } else {
+      setEmptyInputError(true);
+    }
+  }
 
   useEffect(() => {
     const canvas: HTMLCanvasElement = canvasRef.current!;
@@ -111,18 +133,18 @@ export default function Spinner() {
       canvas.height / 2,
       entries.length
     );
-  }, [entries, windowSize]);
+  }, [entries, entryColors, windowSize]);
 
   return (
     <div className="flex items-start justify-center">
       <div className="pt-10 mr-4 flex flex-col items-center">
-        <div className="relative max-h-96 flex flex-col">
+        <div className="relative flex flex-col" style={{ maxHeight: "31rem" }}>
           <h3 className="font-bold text-xl mb-3 ml-4 self-start">
             Spin history:
           </h3>
           <ul className="pb-4 h-full w-52 overflow-y-scroll overflow-x-visible px-4">
             {spinHistory.map((el) => (
-              <li className="text-base w-full flex items-center relative py-3 px-3 border-b-2">
+              <li className="text-base w-full flex items-center relative py-3 border-b-2">
                 <div
                   className="h-5 w-5 mr-2"
                   style={{ backgroundColor: el.color }}
@@ -147,8 +169,43 @@ export default function Spinner() {
               transitionDuration: "2s",
               transform: `rotate(${wheelRotationAngle}deg)`,
             }}
+            onTransitionEnd={() => {
+              const angle = wheelRotationAngle % 360;
+              setSpinning(false);
+              setWheelRotationAngle(angle);
+              for (let i = 0; i < entries.length; i++) {
+                if (
+                  360 - angle >= entries[i].startingAngle &&
+                  360 - angle < entries[i].startingAngle + 360 / entries.length
+                ) {
+                  setSpinHistory([
+                    {
+                      value: entries[i].value,
+                      color: entryColors[i],
+                    },
+                    ...spinHistory,
+                  ]);
+                  break;
+                }
+              }
+            }}
           ></canvas>
-          <div className="h-4 w-4 absolute right-0 bg-black"></div>
+
+          <svg
+            className="h-8 w-8 absolute -right-1"
+            width="92"
+            height="82"
+            viewBox="0 0 92 82"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M89 41V78L7 41L89 4V41Z"
+              fill="white"
+              stroke="black"
+              stroke-width="5"
+            />
+          </svg>
         </div>
 
         <SpinButton
@@ -172,27 +229,7 @@ export default function Spinner() {
             className={`absolute right-2 hover:bg-slate-200 ${
               spinning ? "cursor-not-allowed" : "cursor-pointer"
             } transition-colors p-1 rounded-md`}
-            onClick={(e) => {
-              if (currentValue !== "") {
-                const tempEntries = entries.map((el, index) => {
-                  return {
-                    value: el.value,
-                    startingAngle: (360 / (entries.length + 1)) * (index + 1),
-                  };
-                });
-                setEntries([
-                  {
-                    value: currentValue,
-                    startingAngle: 0,
-                  },
-                  ...tempEntries,
-                ]);
-                setEntryColors([...generateColorsArray(entries.length + 1)]);
-                setCurrentValue("");
-              } else {
-                setEmptyInputError(true);
-              }
-            }}
+            onClick={() => addEntry()}
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -223,30 +260,7 @@ export default function Spinner() {
               setCurrentValue(e.target.value);
               setEmptyInputError(false);
             }}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                if (currentValue !== "") {
-                  const tempEntries = entries.map((el, index) => {
-                    return {
-                      value: el.value,
-                      startingAngle: (360 / (entries.length + 1)) * (index + 1),
-                    };
-                  });
-                  setEntries([
-                    {
-                      value: currentValue,
-                      startingAngle: 0,
-                    },
-                    ...tempEntries,
-                  ]);
-                  setEntryColors([...generateColorsArray(entries.length + 1)]);
-                  console.log(entries);
-                  setCurrentValue("");
-                } else {
-                  setEmptyInputError(true);
-                }
-              }
-            }}
+            onKeyDown={(e) => e.key === "Enter" && addEntry()}
             className="placeholder:italic h-11 placeholder:text-slate-400 block bg-white w-full border border-slate-300 rounded-md py-2 pl-3 pr-3 shadow-sm focus:outline-none focus:border-sky-500 focus:ring-sky-500 focus:ring-1 sm:text-sm"
             placeholder="Add value to spinner"
             type="text"
@@ -258,12 +272,11 @@ export default function Spinner() {
           <ul className="pb-4 h-full w-64 overflow-y-scroll overflow-x-visible px-4">
             {entries.map((el, index) => (
               <Entry
+                color={entryColors[index]}
                 spinning={spinning}
                 value={el.value}
                 entries={entries}
-                setEntries={setEntries}
-                entryColors={entryColors}
-                setEntryColors={setEntryColors}
+                onClick={handleEntryDeleteButton}
                 index={index}
               />
             ))}
@@ -281,32 +294,22 @@ export default function Spinner() {
 }
 
 const Entry = memo(function Entry({
+  color,
   spinning,
   value,
-  entries,
-  setEntries,
-  entryColors,
-  setEntryColors,
   index,
+  onClick,
 }: any) {
   return (
-    <li className="text-base w-full flex items-center relative py-3 px-3 border-b-2">
-      <span
-        className="h-5 w-5 mr-2"
-        style={{ backgroundColor: entryColors[index] }}
-      ></span>
+    <li className="text-base w-full flex items-center relative py-3 border-b-2">
+      <span className="h-5 w-5 mr-2" style={{ backgroundColor: color }}></span>
       <span>{value}</span>
       <button
         disabled={spinning}
-        onClick={() => {
-          const tempArray = [...entries];
-          tempArray.splice(index, 1);
-          setEntries([...tempArray]);
-          setEntryColors([...generateColorsArray(tempArray.length)]);
-        }}
+        onClick={() => onClick(index)}
         className={`absolute ${
           spinning ? "cursor-not-allowed" : "cursor-pointer"
-        } right-2 p-1 rounded-md hover:bg-slate-200 transition-colors`}
+        } right-1 p-1 rounded-md hover:bg-slate-200 transition-colors`}
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -346,44 +349,18 @@ function ClearAllEntriesButton({ entries, setEntries, disabled }: any) {
 }
 
 function SpinButton({
-  entryColors,
-  entries,
   spinning,
   setSpinning,
   setWheelRotationAngle,
-  spinHistory,
-  setSpinHistory,
   wheelRotationAngle,
 }: any) {
   return (
     <button
       disabled={spinning}
       onClick={() => {
-        setSpinning(true);
         const angle = wheelRotationAngle + getRandomArbitrary(720, 1080);
-        const angleSimplified = angle % 360;
+        setSpinning(true);
         setWheelRotationAngle(angle);
-        console.log(angleSimplified);
-        setTimeout(() => {
-          setSpinning(false);
-          setWheelRotationAngle(angleSimplified);
-          for (let index = 0; index < entries.length; index++) {
-            if (
-              360 - angleSimplified >= entries[index].startingAngle &&
-              360 - angleSimplified <
-                entries[index].startingAngle + 360 / entries.length
-            ) {
-              setSpinHistory([
-                {
-                  value: entries[index].value,
-                  color: entryColors[index],
-                },
-                ...spinHistory,
-              ]);
-              break;
-            }
-          }
-        }, 2000);
       }}
       className={`rounded-md shadow-lg transition hover:scale-95 hover:shadow-none mt-6 ${
         spinning ? "cursor-not-allowed" : "cursor-pointer"
@@ -392,31 +369,4 @@ function SpinButton({
       <span>SPIN</span>
     </button>
   );
-}
-
-function useWindowSize() {
-  const [windowSize, setWindowSize] = useState<{
-    width: number;
-    height: number;
-  }>({
-    width: 0,
-    height: 0,
-  });
-
-  function handleResize() {
-    setWindowSize({
-      width: window.innerWidth,
-      height: window.innerHeight,
-    });
-  }
-
-  useEffect(() => {
-    handleResize();
-    window.addEventListener("resize", handleResize);
-    return () => {
-      window.removeEventListener("resize", handleResize);
-    };
-  }, []);
-
-  return windowSize;
 }
