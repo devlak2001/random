@@ -1,5 +1,6 @@
 "use client";
 import { memo, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useDeviceScreen } from "@/app/_hooks/hooks";
 
 function getRandomArbitrary(min: number, max: number): number {
@@ -61,6 +62,12 @@ export default function Spinner() {
     tempArray.splice(index, 1);
     setEntries([...tempArray]);
     setEntryColors([...generateColorsArray(tempArray.length)]);
+  }
+
+  function handleEntryEdit(index: number, newValue: string) {
+    const tempArray = [...entries];
+    tempArray[index].value = newValue;
+    setEntries(tempArray);
   }
 
   function addEntry() {
@@ -260,20 +267,10 @@ export default function Spinner() {
               />
             </svg>
           </button>
-          <span
-            className={`absolute bottom-12 text-xs text-red-600 transition-transform ${
-              inputError ? "scale-100" : "scale-0"
-            }`}
-          >
-            {inputError}
-          </span>
 
           <input
             disabled={spinning}
-            onChange={(e) => {
-              setCurrentValue(e.target.value);
-              setInputError("");
-            }}
+            onChange={(e) => setCurrentValue(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && addEntry()}
             className="placeholder:italic h-11 placeholder:text-slate-400 block bg-white w-full border border-slate-300 rounded-md py-2 pl-3 pr-3 shadow-sm focus:outline-none focus:border-sky-500 focus:ring-sky-500 focus:ring-1 sm:text-sm"
             placeholder="Add value to spinner"
@@ -291,6 +288,7 @@ export default function Spinner() {
                 value={el.value}
                 entries={entries}
                 onClick={handleEntryDeleteButton}
+                onChange={handleEntryEdit}
                 index={index}
               />
             ))}
@@ -303,6 +301,43 @@ export default function Spinner() {
           setEntries={setEntries}
         />
       </div>
+      {createPortal(
+        <div
+          className={`fixed w-full z-50 h-full transition-opacity left-0 top-0 bg-black bg-opacity-20 ${
+            inputError
+              ? "opacity-100 pointer-events-auto"
+              : "opacity-0 pointer-events-none"
+          }`}
+        >
+          <div className="absolute py-6 rounded-md flex flex-col items-center top-10 bg-white w-80 shadow-md left-1/2 -translate-x-1/2">
+            <div className="flex items-center gap-2 justify-center text-red-700">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={1.5}
+                stroke="currentColor"
+                className="w-6 h-6"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z"
+                />
+              </svg>
+
+              <span>{inputError}</span>
+            </div>
+            <button
+              onClick={() => setInputError("")}
+              className="bg-blue-500 rounded-sm text-white py-1 w-24 mt-4"
+            >
+              OK
+            </button>
+          </div>
+        </div>,
+        document.body
+      )}
     </div>
   );
 }
@@ -313,15 +348,46 @@ const Entry = memo(function Entry({
   value,
   index,
   onClick,
+  onChange,
 }: any) {
   return (
     <li className="text-base w-full flex items-center relative py-3 border-b-2">
-      <span className="h-5 w-5 mr-2" style={{ backgroundColor: color }}></span>
-      <span>{value}</span>
+      <span
+        className="h-5 w-5 mr-2 shrink-0"
+        style={{ backgroundColor: color }}
+      ></span>
+      <input
+        type="text"
+        value={value}
+        className="focus:outline-none w-full"
+        onChange={(e) => onChange(index, e.target.value)}
+        onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
+      />
+
+      <button
+        className={`shrink-0 ${
+          spinning ? "cursor-not-allowed" : "cursor-pointer"
+        } right-1 p-1 rounded-md hover:bg-slate-200 transition-colors`}
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          strokeWidth={1.5}
+          stroke="currentColor"
+          className="w-6 h-6"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10"
+          />
+        </svg>
+      </button>
       <button
         disabled={spinning}
         onClick={() => onClick(index)}
-        className={`absolute ${
+        className={`${
           spinning ? "cursor-not-allowed" : "cursor-pointer"
         } right-1 p-1 rounded-md hover:bg-slate-200 transition-colors`}
       >
