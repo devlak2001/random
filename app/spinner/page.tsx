@@ -54,7 +54,7 @@ export default function Spinner() {
     { value: "Option 5", startingAngle: 240 },
     { value: "Option 6", startingAngle: 300 },
   ]);
-  const [emptyInputError, setEmptyInputError] = useState<boolean>(false);
+  const [inputError, setInputError] = useState<string>("");
 
   function handleEntryDeleteButton(index: number) {
     const tempArray = [...entries];
@@ -64,24 +64,38 @@ export default function Spinner() {
   }
 
   function addEntry() {
-    if (currentValue !== "") {
-      const tempEntries = entries.map((el, index) => {
-        return {
-          value: el.value,
-          startingAngle: (360 / (entries.length + 1)) * (index + 1),
-        };
-      });
-      setEntries([
-        {
-          value: currentValue,
-          startingAngle: 0,
-        },
-        ...tempEntries,
-      ]);
-      setEntryColors([...generateColorsArray(entries.length + 1)]);
-      setCurrentValue("");
-    } else {
-      setEmptyInputError(true);
+    try {
+      if (currentValue !== "") {
+        try {
+          if (!entries.filter((el) => el.value === currentValue).length) {
+            const tempEntries = entries.map((el, index) => {
+              return {
+                value: el.value,
+                startingAngle: (360 / (entries.length + 1)) * (index + 1),
+              };
+            });
+            setEntries([
+              {
+                value: currentValue,
+                startingAngle: 0,
+              },
+              ...tempEntries,
+            ]);
+            setEntryColors([...generateColorsArray(entries.length + 1)]);
+            setCurrentValue("");
+          } else {
+            setInputError("Entry already exists");
+            throw new Error("Entry already exists");
+          }
+        } catch (e) {
+          console.error(e);
+        }
+      } else {
+        setInputError("Entry name can't be empty");
+        throw new Error("Entry name can't be empty");
+      }
+    } catch (e) {
+      console.error(e);
     }
   }
 
@@ -248,17 +262,17 @@ export default function Spinner() {
           </button>
           <span
             className={`absolute bottom-12 text-xs text-red-600 transition-transform ${
-              emptyInputError ? "scale-100" : "scale-0"
+              inputError ? "scale-100" : "scale-0"
             }`}
           >
-            You can't add an empty value
+            {inputError}
           </span>
 
           <input
             disabled={spinning}
             onChange={(e) => {
               setCurrentValue(e.target.value);
-              setEmptyInputError(false);
+              setInputError("");
             }}
             onKeyDown={(e) => e.key === "Enter" && addEntry()}
             className="placeholder:italic h-11 placeholder:text-slate-400 block bg-white w-full border border-slate-300 rounded-md py-2 pl-3 pr-3 shadow-sm focus:outline-none focus:border-sky-500 focus:ring-sky-500 focus:ring-1 sm:text-sm"
