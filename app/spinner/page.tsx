@@ -65,9 +65,23 @@ export default function Spinner() {
   }
 
   function handleEntryEdit(index: number, newValue: string) {
-    const tempArray = [...entries];
-    tempArray[index].value = newValue;
-    setEntries(tempArray);
+    if (newValue !== "") {
+      if (
+        !entries.toSpliced(index, 1).filter((el) => el.value === newValue)
+          .length
+      ) {
+        const tempArray = [...entries];
+        tempArray[index].value = newValue;
+        setEntries(tempArray);
+        return true;
+      } else {
+        setInputError("Entry already exists");
+        return false;
+      }
+    } else {
+      setInputError("Entry name can't be empty");
+      return false;
+    }
   }
 
   function addEntry() {
@@ -350,17 +364,31 @@ const Entry = memo(function Entry({
   onClick,
   onChange,
 }: any) {
+  const [focused, setFocused] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [editedValue, setEditedValue] = useState<string | null>(value);
   return (
-    <li className="text-base w-full flex items-center relative py-3 border-b-2">
+    <li
+      className={`text-base w-full transition-colors flex items-center relative py-3 border-b-2`}
+    >
       <span
         className="h-5 w-5 mr-2 shrink-0"
         style={{ backgroundColor: color }}
       ></span>
       <input
+        ref={inputRef}
         type="text"
-        value={value}
-        className="focus:outline-none w-full"
-        onChange={(e) => onChange(index, e.target.value)}
+        value={editedValue !== null ? editedValue : value}
+        className="focus:outline-none transition-colors focus:bg-blue-100 w-full border-b-2 focus:border-blue-500 box-border mr-2"
+        onFocus={(e) => {
+          setEditedValue(e.target.value);
+          setFocused(true);
+        }}
+        onChange={(e) => setEditedValue(e.target.value)}
+        onBlur={() => {
+          onChange(index, editedValue) || setEditedValue(null);
+          setFocused(false);
+        }}
         onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
       />
 
@@ -368,6 +396,7 @@ const Entry = memo(function Entry({
         className={`shrink-0 ${
           spinning ? "cursor-not-allowed" : "cursor-pointer"
         } right-1 p-1 rounded-md hover:bg-slate-200 transition-colors`}
+        onClick={() => inputRef.current!.focus()}
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
