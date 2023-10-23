@@ -58,10 +58,8 @@ export default function Spinner() {
   const [inputError, setInputError] = useState<string>("");
 
   function handleEntryDeleteButton(index: number) {
-    const tempArray = [...entries];
-    tempArray.splice(index, 1);
-    setEntries([...tempArray]);
-    setEntryColors([...generateColorsArray(tempArray.length)]);
+    setEntries(entries.toSpliced(index, 1));
+    setEntryColors([...generateColorsArray(entries.length - 1)]);
   }
 
   function handleEntryEdit(index: number, newValue: string) {
@@ -76,12 +74,11 @@ export default function Spinner() {
         return true;
       } else {
         setInputError("Entry already exists");
-        return false;
       }
     } else {
       setInputError("Entry name can't be empty");
-      return false;
     }
+    return false;
   }
 
   function addEntry() {
@@ -366,7 +363,7 @@ const Entry = memo(function Entry({
 }: any) {
   const [focused, setFocused] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
-  const [editedValue, setEditedValue] = useState<string | null>(value);
+  const [editedValue, setEditedValue] = useState<string | null>(null);
   return (
     <li
       className={`text-base w-full transition-colors flex items-center relative py-3 border-b-2`}
