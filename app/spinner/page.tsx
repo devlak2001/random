@@ -121,8 +121,6 @@ export default function Spinner() {
     const canvas: HTMLCanvasElement = canvasRef.current!;
     const ctx = canvas.getContext("2d")!;
 
-    console.log(entries);
-
     function drawSlices(
       x: number,
       y: number,
@@ -169,14 +167,21 @@ export default function Spinner() {
 
   return (
     <div className="flex items-start justify-center">
-      <div className="pt-10 mr-4 flex flex-col items-center">
+      <div
+        className={`pt-10 mr-4 flex flex-col transition-all duration-500 overflow-x-hidden items-center ${
+          spinHistory.length ? "max-w-lg" : "max-w-0"
+        }`}
+      >
         <div className="relative flex flex-col" style={{ maxHeight: "31rem" }}>
           <h3 className="font-bold text-xl mb-3 ml-4 self-start">
             Spin history:
           </h3>
           <ul className="pb-4 h-full w-52 overflow-y-scroll overflow-x-visible px-4">
-            {spinHistory.map((el) => (
-              <li className="text-base w-full flex items-center relative py-3 border-b-2">
+            {spinHistory.map((el, index) => (
+              <li
+                className="text-base w-full flex items-center relative py-3 border-b-2"
+                key={index}
+              >
                 <div
                   className="h-5 w-5 mr-2"
                   style={{ backgroundColor: el.color }}
@@ -235,7 +240,7 @@ export default function Spinner() {
               d="M89 41V78L7 41L89 4V41Z"
               fill="white"
               stroke="black"
-              stroke-width="5"
+              strokeWidth="5"
             />
           </svg>
         </div>
@@ -301,6 +306,7 @@ export default function Spinner() {
                 onClick={handleEntryDeleteButton}
                 onChange={handleEntryEdit}
                 index={index}
+                key={index}
               />
             ))}
           </ul>
@@ -312,43 +318,44 @@ export default function Spinner() {
           setEntries={setEntries}
         />
       </div>
-      {createPortal(
-        <div
-          className={`fixed w-full z-50 h-full transition-opacity left-0 top-0 bg-black bg-opacity-20 ${
-            inputError
-              ? "opacity-100 pointer-events-auto"
-              : "opacity-0 pointer-events-none"
-          }`}
-        >
-          <div className="absolute py-6 rounded-md flex flex-col items-center top-10 bg-white w-80 shadow-md left-1/2 -translate-x-1/2">
-            <div className="flex items-center gap-2 justify-center text-red-700">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth={1.5}
-                stroke="currentColor"
-                className="w-6 h-6"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z"
-                />
-              </svg>
+      {document &&
+        createPortal(
+          <div
+            className={`fixed w-full z-50 h-full transition-opacity left-0 top-0 bg-black bg-opacity-20 ${
+              inputError
+                ? "opacity-100 pointer-events-auto"
+                : "opacity-0 pointer-events-none"
+            }`}
+          >
+            <div className="absolute py-6 rounded-md flex flex-col items-center top-10 bg-white w-80 shadow-md left-1/2 -translate-x-1/2">
+              <div className="flex items-center gap-2 justify-center text-red-700">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={1.5}
+                  stroke="currentColor"
+                  className="w-6 h-6"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z"
+                  />
+                </svg>
 
-              <span>{inputError}</span>
+                <span>{inputError}</span>
+              </div>
+              <button
+                onClick={() => setInputError("")}
+                className="bg-blue-500 rounded-sm text-white py-1 w-24 mt-4"
+              >
+                OK
+              </button>
             </div>
-            <button
-              onClick={() => setInputError("")}
-              className="bg-blue-500 rounded-sm text-white py-1 w-24 mt-4"
-            >
-              OK
-            </button>
-          </div>
-        </div>,
-        document.body
-      )}
+          </div>,
+          document.body
+        )}
     </div>
   );
 }
