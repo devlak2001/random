@@ -318,43 +318,44 @@ export default function Spinner() {
           setEntries={setEntries}
         />
       </div>
-      {createPortal(
-        <div
-          className={`fixed w-full z-50 h-full transition-opacity left-0 top-0 bg-black bg-opacity-20 ${
-            inputError
-              ? "opacity-100 pointer-events-auto"
-              : "opacity-0 pointer-events-none"
-          }`}
-        >
-          <div className="absolute py-6 rounded-md flex flex-col items-center top-10 bg-white w-80 shadow-md left-1/2 -translate-x-1/2">
-            <div className="flex items-center gap-2 justify-center text-red-700">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth={1.5}
-                stroke="currentColor"
-                className="w-6 h-6"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z"
-                />
-              </svg>
+      {typeof document !== "undefined" &&
+        createPortal(
+          <div
+            className={`fixed w-full z-50 h-full transition-opacity left-0 top-0 bg-black bg-opacity-20 ${
+              inputError
+                ? "opacity-100 pointer-events-auto"
+                : "opacity-0 pointer-events-none"
+            }`}
+          >
+            <div className="absolute py-6 rounded-md flex flex-col items-center top-10 bg-white w-80 shadow-md left-1/2 -translate-x-1/2">
+              <div className="flex items-center gap-2 justify-center text-red-700">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={1.5}
+                  stroke="currentColor"
+                  className="w-6 h-6"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z"
+                  />
+                </svg>
 
-              <span>{inputError}</span>
+                <span>{inputError}</span>
+              </div>
+              <button
+                onClick={() => setInputError("")}
+                className="bg-blue-500 rounded-sm text-white py-1 w-24 mt-4"
+              >
+                OK
+              </button>
             </div>
-            <button
-              onClick={() => setInputError("")}
-              className="bg-blue-500 rounded-sm text-white py-1 w-24 mt-4"
-            >
-              OK
-            </button>
-          </div>
-        </div>,
-        document.body
-      )}
+          </div>,
+          document.body
+        )}
     </div>
   );
 }
